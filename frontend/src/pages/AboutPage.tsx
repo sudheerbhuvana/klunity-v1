@@ -12,7 +12,7 @@ export function AboutPage() {
                 <div className="max-w-4xl mx-auto text-center mb-20">
                     <h1 className="text-4xl md:text-6xl font-bold mb-6">Empowering Student Voices</h1>
                     <p className="text-xl text-gray-600 leading-relaxed">
-                        StudentStories is a platform dedicated to sharing the unique journeys, challenges, and triumphs of students across the globe. We believe every student has a story worth telling.
+                        KL Unity is a platform dedicated to sharing the unique journeys, challenges, and triumphs of students across the globe. We believe every student has a story worth telling.
                     </p>
                 </div>
 
@@ -53,11 +53,15 @@ export function AboutPage() {
                     <div className="inline-block">
                         <div className="bg-white p-6 rounded-3xl border-3 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-sm mx-auto">
                             <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto mb-6 border-3 border-black overflow-hidden">
-                                <img src="/images/creator.jpg" alt="Sudheer Bhuvana" className="w-full h-full object-cover" onError={(e) => {
+                                <img src="/images/design-mode/83955438.png" alt="Developer" className="w-full h-full object-cover" onError={(e) => {
                                     e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sudheer'
                                 }} />
                             </div>
-                            <h3 className="text-2xl font-bold mb-2">Sudheer Bhuvana</h3>
+                            <h3 className="text-2xl font-bold mb-1">Bhuvana Sudheer</h3>
+                            <a href="/user/2400080210" className="block hover:underline text-blue-600 mb-2">
+                                <span className="font-bold">ID:</span> 2400080210
+                            </a>
+                            <p className="text-gray-500 font-medium mb-1">CSE HTE</p>
                             <p className="text-gray-500 font-medium mb-4">Founder & Developer</p>
                             <p className="text-gray-600">
                                 Passionate about building communities and technology that brings people together.
