@@ -4,10 +4,11 @@ import { AppLayout } from "@/components/layout/app-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { storyAPI } from "@/lib/api"
+import { storyAPI, aiAPI } from "@/lib/api"
 import { logger } from "@/lib/logger"
 import { toast } from "sonner"
-import { ImagePlus, X, Loader2, Bold, Italic, Link as LinkIcon, FileText, Video } from "lucide-react"
+import { ImagePlus, X, Loader2, Bold, Italic, Link as LinkIcon, FileText, Video, Sparkles } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 
 export function CreateStoryPage() {
     const navigate = useNavigate()
@@ -16,6 +17,12 @@ export function CreateStoryPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [files, setFiles] = useState<File[]>([])
     const [filePreviews, setFilePreviews] = useState<{ url: string, type: string, name: string }[]>([])
+
+    // AI State
+    const [isAIDialogOpen, setIsAIDialogOpen] = useState(false)
+    const [aiPrompt, setAiPrompt] = useState("")
+    const [isGenerating, setIsGenerating] = useState(false)
+    const [generatedText, setGeneratedText] = useState("")
 
     const [formData, setFormData] = useState({
         title: "",
@@ -78,6 +85,35 @@ export function CreateStoryPage() {
             URL.revokeObjectURL(prev[index].url)
             return prev.filter((_, i) => i !== index)
         })
+    }
+
+    const handleGenerateAI = async () => {
+        if (!aiPrompt.trim()) return
+
+        setIsGenerating(true)
+        setGeneratedText("") // Clear previous
+        try {
+            const response = await aiAPI.generateContent({
+                prompt: aiPrompt,
+                context: formData.content // Send current content as context
+            })
+            setGeneratedText(response.data.text)
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to generate content")
+        } finally {
+            setIsGenerating(false)
+        }
+    }
+
+    const handleAcceptAI = () => {
+        setFormData(prev => ({
+            ...prev,
+            content: prev.content + (prev.content ? "\n\n" : "") + generatedText
+        }))
+        setIsAIDialogOpen(false)
+        setAiPrompt("")
+        setGeneratedText("")
+        toast.success("Content added to your story!")
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -148,6 +184,17 @@ export function CreateStoryPage() {
                         <div className="flex items-center justify-between mb-2">
                             <label className="block text-sm font-bold">Content</label>
                             <div className="flex gap-2">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setIsAIDialogOpen(true)}
+                                    className="mr-2 border-2 border-purple-500 text-purple-600 hover:bg-purple-50"
+                                    title="Refine with AI"
+                                >
+                                    <Sparkles className="w-4 h-4 mr-2" />
+                                    Refine with AI
+                                </Button>
                                 <Button type="button" size="sm" variant="ghost" onClick={() => insertFormatting('**', '**')} title="Bold">
                                     <Bold className="w-4 h-4" />
                                 </Button>
@@ -292,6 +339,82 @@ export function CreateStoryPage() {
                         </Button>
                     </div>
                 </form>
+
+                {/* AI Dialog */}
+                <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
+                    <DialogContent className="sm:max-w-[600px] border-3 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
+                                <Sparkles className="w-6 h-6 text-purple-600" />
+                                Refine with AI
+                            </DialogTitle>
+                            <DialogDescription>
+                                Describe what you want to write about, and let AI help you get started or refine your ideas.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold">Your Prompt</label>
+                                <Textarea
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    placeholder="e.g., Write an introduction about my internship experience at Google..."
+                                    className="min-h-[100px] border-2 border-black rounded-xl"
+                                />
+                            </div>
+
+                            {generatedText && (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold">Generated Content</label>
+                                    <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200 max-h-[200px] overflow-y-auto text-sm">
+                                        {generatedText}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <Button variant="outline" onClick={() => setIsAIDialogOpen(false)} className="border-2 border-black font-bold">
+                                Cancel
+                            </Button>
+                            {!generatedText ? (
+                                <Button
+                                    onClick={handleGenerateAI}
+                                    disabled={isGenerating || !aiPrompt.trim()}
+                                    className="bg-purple-600 text-white hover:bg-purple-700 border-2 border-black font-bold"
+                                >
+                                    {isGenerating ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Generate
+                                        </>
+                                    )}
+                                </Button>
+                            ) : (
+                                <div className="flex gap-2 w-full sm:w-auto">
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleGenerateAI}
+                                        disabled={isGenerating}
+                                        className="border-2 border-black font-bold"
+                                    >
+                                        Try Again
+                                    </Button>
+                                    <Button
+                                        onClick={handleAcceptAI}
+                                        className="bg-green-600 text-white hover:bg-green-700 border-2 border-black font-bold"
+                                    >
+                                        Use This
+                                    </Button>
+                                </div>
+                            )}
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </AppLayout>
     )

@@ -8,8 +8,8 @@ export function PortfolioSection() {
       description:
         "How I went from dreading presentations to actually enjoying them. Sharing the techniques and mindset shifts that helped me overcome my fear.",
       tag: "Personal Growth",
-      author: "Alex Chen",
-      major: "Business, 2nd Year",
+      author: "Bhuvana Sudheer",
+      major: "CSE HTE",
       bgColor: "bg-[#6366F1]",
       reactions: { hearts: 234, comments: 45 }
     },
@@ -18,8 +18,8 @@ export function PortfolioSection() {
       description:
         "Real talk about managing a 20-hour work week while maintaining good grades. Tips, struggles, and what I wish I knew earlier.",
       tag: "Student Life",
-      author: "Maria Rodriguez",
-      major: "Engineering, 3rd Year",
+      author: "Kushaal Nayak",
+      major: "CSE HTE",
       bgColor: "bg-[#2F81F7]",
       reactions: { hearts: 189, comments: 67 }
     },

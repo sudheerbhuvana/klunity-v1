@@ -25,7 +25,7 @@ export function AboutSection() {
               </span>
             </h2>
             <p className="text-gray-600 text-base md:text-lg leading-relaxed">
-              We believe every student's journey is unique and valuable. StudentStories is a safe space
+              We believe every student's journey is unique and valuable. KL Unity is a safe space
               where you can share your authentic experiences, connect with peers who get it, and find
               support when you need it most.
             </p>

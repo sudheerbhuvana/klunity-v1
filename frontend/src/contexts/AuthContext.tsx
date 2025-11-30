@@ -10,6 +10,9 @@ interface User {
     year?: number;
     avatar?: string;
     isEmailVerified: boolean;
+    role?: 'student' | 'faculty' | 'admin';
+    department?: string;
+    isVerified?: boolean;
 }
 
 interface AuthContextType {
@@ -53,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setToken(token);
             setUser(user);
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Login failed');
+            throw error;
         }
     };
 
@@ -68,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setToken(token);
             setUser(user);
         } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Registration failed');
+            throw error;
         }
     };
 

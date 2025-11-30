@@ -1,28 +1,22 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import nodemailer from 'nodemailer';
 
-// Initialize SES client lazily to ensure env vars are loaded
-let sesClient = null;
-
-const getSesClient = () => {
-    if (!sesClient) {
-        console.log('Initializing SES Client with config:', {
-            region: process.env.AWS_REGION,
-            hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID
-        });
-
-        sesClient = new SESClient({
-            region: process.env.AWS_REGION || 'us-east-1',
-            credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-            }
-        });
+// Initialize Nodemailer transporter
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.office365.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+    },
+    tls: {
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
     }
-    return sesClient;
-};
+});
 
 /**
- * Send email using Amazon SES
+ * Send email using Nodemailer
  * @param {Object} options - Email options
  * @param {string} options.to - Recipient email
  * @param {string} options.subject - Email subject
@@ -30,37 +24,31 @@ const getSesClient = () => {
  * @param {string} options.text - Plain text content (optional)
  */
 export const sendEmail = async ({ to, subject, html, text }) => {
-    const params = {
-        Source: process.env.SES_FROM_EMAIL || 'noreply@studentstories.com',
-        Destination: {
-            ToAddresses: [to]
-        },
-        Message: {
-            Subject: {
-                Data: subject,
-                Charset: 'UTF-8'
-            },
-            Body: {
-                Html: {
-                    Data: html,
-                    Charset: 'UTF-8'
-                },
-                ...(text && {
-                    Text: {
-                        Data: text,
-                        Charset: 'UTF-8'
-                    }
-                })
-            }
-        }
+    const fromEmail = process.env.SMTP_USER;
+
+    if (!fromEmail) {
+        throw new Error('SMTP_USER environment variable is not set');
+    }
+
+    const mailOptions = {
+        from: `"KL Unity" <${fromEmail}>`,
+        to,
+        subject,
+        html,
+        text
     };
 
+    console.log('📧 Attempting to send email via SMTP:', {
+        to,
+        from: fromEmail,
+        subject,
+        host: process.env.SMTP_HOST
+    });
+
     try {
-        const command = new SendEmailCommand(params);
-        const client = getSesClient();
-        const response = await client.send(command);
-        console.log('✅ Email sent successfully:', response.MessageId);
-        return response;
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent successfully:', info.messageId);
+        return info;
     } catch (error) {
         console.error('❌ Error sending email:', error);
         throw error;
@@ -74,10 +62,10 @@ export const sendEmail = async ({ to, subject, html, text }) => {
  * @param {string} name - User name
  */
 export const sendOTPEmail = async (to, otp, name) => {
-    const subject = 'Your Verification Code - StudentStories';
+    const subject = 'Your Verification Code - KL Unity';
     const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #000;">Welcome to StudentStories!</h1>
+        <h1 style="color: #000;">Welcome to KL Unity!</h1>
         <p>Hi ${name},</p>
         <p>Your verification code is:</p>
         <div style="background-color: #f4f4f4; padding: 20px; text-align: center; border-radius: 10px; margin: 20px 0;">

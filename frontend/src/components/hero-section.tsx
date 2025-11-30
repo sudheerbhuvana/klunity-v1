@@ -66,8 +66,8 @@ export function HeroSection() {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-[#6366F1] border-2 border-black"></div>
                 <div>
-                  <p className="font-bold">Sarah's Journey</p>
-                  <p className="text-sm text-gray-600">Computer Science, 3rd Year</p>
+                  <p className="font-bold">Bhuvana Sudheer</p>
+                  <p className="text-sm text-gray-600">CSE HTE</p>
                 </div>
               </div>
               <p className="text-gray-700 leading-relaxed">

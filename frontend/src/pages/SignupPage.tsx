@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Mail, Lock, Eye, EyeOff, User, Github, ArrowRight } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, User, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -15,6 +15,8 @@ export function SignupPage() {
         email: "",
         password: "",
         confirmPassword: "",
+        department: "",
+        role: "student"
     })
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -58,8 +60,23 @@ export function SignupPage() {
 
         if (!formData.email) {
             newErrors.email = "Email is required"
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = "Email is invalid"
+        } else if (!formData.email.endsWith('@kluniversity.in')) {
+            newErrors.email = "Must be a valid @kluniversity.in email"
+        } else {
+            const prefix = formData.email.split('@')[0];
+            if (formData.role === 'student') {
+                if (!/^\d{10}$/.test(prefix)) {
+                    newErrors.email = "Student ID must be exactly 10 digits"
+                }
+            } else {
+                if (!prefix) {
+                    newErrors.email = "Faculty ID/Email prefix is required"
+                }
+            }
+        }
+
+        if (!formData.department) {
+            newErrors.department = "Department is required"
         }
 
         if (!formData.password) {
@@ -96,7 +113,9 @@ export function SignupPage() {
                     username: formData.username,
                     name: formData.name,
                     email: formData.email,
-                    password: formData.password
+                    password: formData.password,
+                    department: formData.department,
+                    role: formData.role
                 })
                 logger.info('SignupPage', 'Registration successful, showing OTP')
                 toast.success("Registration successful! Please check your email for the OTP.")
@@ -139,10 +158,7 @@ export function SignupPage() {
         }
     }
 
-    const handleSocialSignup = (provider: string) => {
-        logger.userAction('SignupPage', `Social signup clicked`, { provider })
-        // Handle social signup
-    }
+
 
     if (showOTP) {
         return (
@@ -200,38 +216,21 @@ export function SignupPage() {
             <div className="w-full max-w-md">
                 {/* Logo/Brand */}
                 <div className="text-center mb-8">
-                    <div className="inline-block w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                        <div className="w-10 h-10 bg-white rounded-full"></div>
+                    <div className="inline-block mb-6">
+                        <img src="/images/klunitylogo.png" alt="KL Unity Logo" className="h-24 w-auto object-contain" />
                     </div>
-                    <h1 className="text-4xl font-bold text-white mb-2">Join Paperfolio!</h1>
+                    <h1 className="text-4xl font-bold text-white mb-2">Join KL Unity!</h1>
                     <p className="text-white/90">Create your account to get started</p>
                 </div>
 
                 {/* Signup Form */}
                 <div className="bg-white border-4 border-black rounded-3xl p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Username Input */}
-                        <div>
-                            <label className="block text-sm font-bold mb-2">Username</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <Input
-                                    type="text"
-                                    value={formData.username}
-                                    onChange={(e) => handleChange('username', e.target.value)}
-                                    placeholder="johndoe"
-                                    className="pl-12 h-14 border-3 border-black rounded-xl text-base"
-                                    disabled={isLoading}
-                                />
-                            </div>
-                            {errors.username && (
-                                <p className="text-red-500 text-sm mt-1 font-medium">{errors.username}</p>
-                            )}
-                        </div>
+
 
                         {/* Name Input */}
                         <div>
-                            <label className="block text-sm font-bold mb-2">Full Name</label>
+                            <label className="block text-sm font-bold mb-2">Full Name as per University</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <Input
@@ -248,24 +247,162 @@ export function SignupPage() {
                             )}
                         </div>
 
-                        {/* Email Input */}
+                        {/* Email Prefix Input */}
                         <div>
-                            <label className="block text-sm font-bold mb-2">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <label className="block text-sm font-bold mb-2">University ID / Email Prefix</label>
+                            <div className="relative flex items-center">
+                                <Mail className="absolute left-4 w-5 h-5 text-gray-400" />
                                 <Input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => handleChange('email', e.target.value)}
-                                    placeholder="your@email.com"
-                                    className="pl-12 h-14 border-3 border-black rounded-xl text-base"
+                                    type="text"
+                                    value={formData.email.split('@')[0]}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        // If student, only allow digits and max 10 chars
+                                        if (formData.role === 'student') {
+                                            if (/^\d{0,10}$/.test(val)) {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    email: val + '@kluniversity.in',
+                                                    username: val
+                                                }));
+                                                if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                                                if (errors.username) setErrors(prev => ({ ...prev, username: "" }));
+                                            }
+                                        } else {
+                                            // Faculty can type anything
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                email: val + '@kluniversity.in',
+                                                username: val
+                                            }));
+                                            if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                                            if (errors.username) setErrors(prev => ({ ...prev, username: "" }));
+                                        }
+                                    }}
+                                    placeholder={formData.role === 'student' ? "24000xxxx" : "faculty.id"}
+                                    className="pl-12 pr-36 h-14 border-3 border-black rounded-xl text-base"
                                     disabled={isLoading}
                                 />
+                                <div className="absolute right-4 text-gray-500 font-bold pointer-events-none bg-white pl-2">
+                                    @kluniversity.in
+                                </div>
                             </div>
                             {errors.email && (
                                 <p className="text-red-500 text-sm mt-1 font-medium">{errors.email}</p>
                             )}
                         </div>
+
+                        {/* Faculty Checkbox */}
+                        <div
+                            className="flex items-center gap-3 p-4 bg-gray-50 border-2 border-gray-200 rounded-xl hover:border-black transition-colors cursor-pointer"
+                            onClick={(e) => {
+                                // Prevent double toggle if clicking checkbox or label directly
+                                if (e.target !== e.currentTarget) return;
+
+                                const newRole = formData.role === 'faculty' ? 'student' : 'faculty';
+                                const currentPrefix = formData.email.split('@')[0];
+                                if (newRole === 'student' && !/^\d{0,10}$/.test(currentPrefix)) {
+                                    handleChange('email', '@kluniversity.in');
+                                }
+                                handleChange('role', newRole);
+                            }}
+                        >
+                            <Checkbox
+                                checked={formData.role === 'faculty'}
+                                onCheckedChange={(checked) => {
+                                    const newRole = checked ? 'faculty' : 'student';
+                                    const currentPrefix = formData.email.split('@')[0];
+                                    if (newRole === 'student' && !/^\d{0,10}$/.test(currentPrefix)) {
+                                        handleChange('email', '@kluniversity.in');
+                                    }
+                                    handleChange('role', newRole);
+                                }}
+                                id="faculty"
+                                className="w-5 h-5 border-2 border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
+                                disabled={isLoading}
+                            />
+                            <label htmlFor="faculty" className="text-base font-bold cursor-pointer flex-1">
+                                I am a Faculty Member
+                            </label>
+                        </div>
+
+                        {/* Department Dropdown */}
+                        <div>
+                            <label className="block text-sm font-bold mb-2">Department</label>
+                            <select
+                                value={formData.department}
+                                onChange={(e) => handleChange('department', e.target.value)}
+                                className="w-full h-14 pl-4 pr-10 border-3 border-black rounded-xl text-base bg-white appearance-none cursor-pointer"
+                                disabled={isLoading}
+                            >
+                                <option value="">Select Department</option>
+                                <optgroup label="B.Tech">
+                                    <option value="B.Tech AI&DS">B.Tech AI&DS</option>
+                                    <option value="B.Tech CS&IT">B.Tech CS&IT</option>
+                                    <option value="B.Tech ECS">B.Tech ECS</option>
+                                    <option value="B.Tech IOT">B.Tech IOT</option>
+                                    <option value="B.Tech ECE">B.Tech ECE</option>
+                                    <option value="B.Tech CSE - 1">B.Tech CSE - 1</option>
+                                    <option value="B.Tech CSE - 2">B.Tech CSE - 2</option>
+                                    <option value="B.Tech CSE - 3">B.Tech CSE - 3</option>
+                                    <option value="B.Tech CSE - 4">B.Tech CSE - 4</option>
+                                    <option value="B.Tech CSE - Regular">B.Tech CSE - Regular</option>
+                                    <option value="B.Tech BT">B.Tech BT</option>
+                                    <option value="B.Tech CE">B.Tech CE</option>
+                                    <option value="B.Tech EEE">B.Tech EEE</option>
+                                    <option value="B.Tech ME">B.Tech ME</option>
+                                    <option value="B.Tech HTE">B.Tech HTE</option>
+                                    <option value="B.Tech HTI">B.Tech HTI</option>
+                                    <option value="B.Tech HTR">B.Tech HTR</option>
+                                </optgroup>
+                                <optgroup label="B.Sc">
+                                    <option value="B.Sc - VC">B.Sc - VC</option>
+                                    <option value="B.Sc (Animation & Gaming)">B.Sc (Animation & Gaming)</option>
+                                    <option value="B.Sc (Hons.) Agriculture">B.Sc (Hons.) Agriculture</option>
+                                </optgroup>
+                                <optgroup label="M.Tech">
+                                    <option value="M.Tech - EVT">M.Tech - EVT</option>
+                                    <option value="M.Tech - PE & PS">M.Tech - PE & PS</option>
+                                    <option value="M.Tech - CTM">M.Tech - CTM</option>
+                                    <option value="M.Tech - Machine Design">M.Tech - Machine Design</option>
+                                    <option value="M.Tech - SE">M.Tech - SE</option>
+                                    <option value="M.Tech - Thermal Engineering">M.Tech - Thermal Engineering</option>
+                                    <option value="M.Tech - CSE">M.Tech - CSE</option>
+                                </optgroup>
+                                <optgroup label="M.Sc">
+                                    <option value="M.Sc Computational Mathematics">M.Sc Computational Mathematics</option>
+                                    <option value="M.Sc Nano Science and Technology">M.Sc Nano Science and Technology</option>
+                                    <option value="M.Sc Chemistry">M.Sc Chemistry</option>
+                                    <option value="M.Sc Physics">M.Sc Physics</option>
+                                    <option value="M.Sc - F&C">M.Sc - F&C</option>
+                                </optgroup>
+                                <optgroup label="Other Undergraduate">
+                                    <option value="B.Com">B.Com</option>
+                                    <option value="B.Com.(Hons)">B.Com.(Hons)</option>
+                                    <option value="B.A">B.A</option>
+                                    <option value="B.Arch">B.Arch</option>
+                                    <option value="B.Pharmacy">B.Pharmacy</option>
+                                    <option value="LLB">LLB</option>
+                                    <option value="BBA">BBA</option>
+                                    <option value="BBA- BA">BBA- BA</option>
+                                    <option value="BBA-LLB">BBA-LLB</option>
+                                    <option value="BCA">BCA</option>
+                                </optgroup>
+                                <optgroup label="Other Postgraduate">
+                                    <option value="M.Pharmacy">M.Pharmacy</option>
+                                    <option value="MA DH&LS">MA DH&LS</option>
+                                    <option value="MA - English">MA - English</option>
+                                    <option value="MBA">MBA</option>
+                                    <option value="MCA">MCA</option>
+                                    <option value="Pharma D">Pharma D</option>
+                                </optgroup>
+                            </select>
+                            {errors.department && (
+                                <p className="text-red-500 text-sm mt-1 font-medium">{errors.department}</p>
+                            )}
+                        </div>
+
+
 
                         {/* Password Input */}
                         <div>
@@ -345,6 +482,7 @@ export function SignupPage() {
                             )}
                         </div>
 
+
                         {/* Signup Button */}
                         <Button
                             type="submit"
@@ -353,45 +491,6 @@ export function SignupPage() {
                         >
                             {isLoading ? "Creating Account..." : "Create Account"}
                         </Button>
-
-                        {/* Divider */}
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t-2 border-gray-200"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white text-gray-500 font-medium">Or sign up with</span>
-                            </div>
-                        </div>
-
-                        {/* Social Signup */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => handleSocialSignup('google')}
-                                className="h-12 border-3 border-black rounded-xl font-bold hover:bg-gray-50"
-                                disabled={isLoading}
-                            >
-                                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                </svg>
-                                Google
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => handleSocialSignup('github')}
-                                className="h-12 border-3 border-black rounded-xl font-bold hover:bg-gray-50"
-                                disabled={isLoading}
-                            >
-                                <Github className="w-5 h-5 mr-2" />
-                                GitHub
-                            </Button>
-                        </div>
                     </form>
 
                     {/* Login Link */}
@@ -404,7 +503,7 @@ export function SignupPage() {
                         </p>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }

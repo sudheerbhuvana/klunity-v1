@@ -6,12 +6,15 @@ import { HeroSection } from "@/components/hero-section"
 import { LogoMarquee } from "@/components/logo-marquee"
 import { ServicesSection } from "@/components/services-section"
 import { AboutSection } from "@/components/about-section"
+import { Toaster } from "@/components/ui/sonner"
 import { PortfolioSection } from "@/components/portfolio-section"
 import { ExperienceSection } from "@/components/experience-section"
 import { TestimonialsSection } from "@/components/testimonials-section"
 import { ArticlesSection } from "@/components/articles-section"
 import { Footer } from "@/components/footer"
 import { LoginPage } from "@/pages/LoginPage"
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage"
+import { VerifyEmailPage } from "@/pages/VerifyEmailPage"
 import { SignupPage } from "@/pages/SignupPage"
 import { FeedPage } from "@/pages/FeedPage"
 import { CreateStoryPage } from "@/pages/CreateStoryPage"
@@ -20,9 +23,12 @@ import { ProfilePage } from "@/pages/ProfilePage"
 import { ExplorePage } from "@/pages/ExplorePage"
 import { AboutPage } from "@/pages/AboutPage"
 import { ContactPage } from "@/pages/ContactPage"
+import { TermsPage } from "@/pages/TermsPage"
+import { PrivacyPage } from "@/pages/PrivacyPage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
+import { MessagesPage } from "@/pages/MessagesPage"
+import { AdminDashboardPage } from "@/pages/AdminDashboardPage"
 import { logger } from "@/lib/logger"
-import { Toaster } from "@/components/ui/sonner"
 
 function HomePage() {
     return (
@@ -95,7 +101,7 @@ function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
-                <main className="min-h-screen bg-[#FFFFFF] font-sans antialiased overflow-x-hidden">
+                <main className="min-h-screen bg-[#FFFFFF] font-sans antialiased">
                     <Routes>
                         <Route
                             path="/"
@@ -110,6 +116,22 @@ function App() {
                             element={
                                 <PublicRoute>
                                     <LoginPage />
+                                </PublicRoute>
+                            }
+                        />
+                        <Route
+                            path="/forgot-password"
+                            element={
+                                <PublicRoute>
+                                    <ForgotPasswordPage />
+                                </PublicRoute>
+                            }
+                        />
+                        <Route
+                            path="/verify-email"
+                            element={
+                                <PublicRoute>
+                                    <VerifyEmailPage />
                                 </PublicRoute>
                             }
                         />
@@ -168,6 +190,30 @@ function App() {
                             }
                         />
                         <Route
+                            path="/messages"
+                            element={
+                                <ProtectedRoute>
+                                    <MessagesPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/messages/:userId"
+                            element={
+                                <ProtectedRoute>
+                                    <MessagesPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/admin"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminDashboardPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
                             path="/about"
                             element={
                                 <PublicRoute>
@@ -182,6 +228,14 @@ function App() {
                                     <ContactPage />
                                 </PublicRoute>
                             }
+                        />
+                        <Route
+                            path="/terms"
+                            element={<TermsPage />}
+                        />
+                        <Route
+                            path="/privacy"
+                            element={<PrivacyPage />}
                         />
                         <Route
                             path="*"

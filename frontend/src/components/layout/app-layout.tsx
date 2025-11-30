@@ -9,11 +9,14 @@ import {
     Search,
     Menu,
     X,
-    Bell
+    TrendingUp,
+    MessageCircle,
+    Shield
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
+import { NotificationDropdown } from "@/components/notification-dropdown"
 
 interface AppLayoutProps {
     children: React.ReactNode
@@ -28,9 +31,14 @@ export function AppLayout({ children }: AppLayoutProps) {
     const navItems = [
         { icon: Home, label: "Feed", path: "/feed" },
         { icon: Compass, label: "Explore", path: "/explore" },
+        { icon: MessageCircle, label: "Messages", path: "/messages" },
         { icon: PlusSquare, label: "Create", path: "/create" },
         { icon: User, label: "Profile", path: "/profile" },
     ]
+
+    if (user?.role === 'admin') {
+        navItems.push({ icon: Shield, label: "Admin", path: "/admin" })
+    }
 
     const handleLogout = () => {
         logout()
@@ -49,10 +57,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                     </button>
                     <Link to="/feed" className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                            <div className="w-4 h-4 bg-white rounded-sm"></div>
-                        </div>
-                        <span className="font-bold text-xl hidden sm:block">StudentStories</span>
+                        <img src="/images/klunitylogo.png" alt="KL Unity Logo" className="h-12 w-auto object-contain" />
                     </Link>
                 </div>
 
@@ -67,10 +72,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <button className="p-2 hover:bg-gray-100 rounded-full relative">
-                        <Bell className="w-6 h-6" />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-                    </button>
+                    <NotificationDropdown />
                     <Link to="/profile" className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full border-2 border-black"></div>
                         <span className="font-bold hidden sm:block">{user?.name?.split(' ')[0]}</span>
@@ -78,9 +80,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </div>
             </header>
 
-            <div className="flex">
+            <div className="flex items-start">
                 {/* Sidebar Navigation (Desktop) */}
-                <aside className="hidden lg:block w-64 sticky top-16 h-[calc(100vh-4rem)] border-r-2 border-black bg-white p-6 overflow-y-auto">
+                <aside className="hidden lg:block w-64 sticky top-16 h-[calc(100vh-4rem)] border-r-2 border-black bg-white p-6 overflow-y-auto no-scrollbar">
                     <nav className="space-y-2">
                         {navItems.map((item) => {
                             const Icon = item.icon
@@ -115,11 +117,25 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                     {/* Trending Tags Section */}
                     <div className="mt-12">
-                        <h3 className="font-bold text-sm text-gray-400 uppercase tracking-wider mb-4 px-4">Trending</h3>
-                        <div className="space-y-2 px-4">
-                            {['#CampusLife', '#Internships', '#StudyTips', '#Events'].map(tag => (
-                                <div key={tag} className="text-sm font-medium text-gray-600 hover:text-black cursor-pointer">
-                                    {tag}
+                        <div className="flex items-center gap-2 mb-4 px-4">
+                            <div className="bg-orange-100 p-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <TrendingUp className="w-4 h-4 text-orange-600" />
+                            </div>
+                            <h3 className="font-black text-sm uppercase tracking-wider">Trending Now</h3>
+                        </div>
+                        <div className="space-y-3 px-2">
+                            {[
+                                { tag: '#CampusLife', count: '2.4k posts', color: 'bg-blue-100' },
+                                { tag: '#Internships', count: '1.8k posts', color: 'bg-green-100' },
+                                { tag: '#StudyTips', count: '950 posts', color: 'bg-yellow-100' },
+                                { tag: '#Events', count: '500 posts', color: 'bg-purple-100' }
+                            ].map((item) => (
+                                <div key={item.tag} className="group flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-all border-2 border-transparent hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                    <div>
+                                        <div className="font-bold text-sm">{item.tag}</div>
+                                        <div className="text-xs text-gray-500 font-medium">{item.count}</div>
+                                    </div>
+                                    <div className={`w-2 h-2 rounded-full ${item.color} border border-black`}></div>
                                 </div>
                             ))}
                         </div>

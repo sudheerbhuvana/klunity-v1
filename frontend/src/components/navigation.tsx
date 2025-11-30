@@ -3,8 +3,11 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { logger } from "@/lib/logger"
 import { useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
+import { NotificationDropdown } from "./notification-dropdown"
 
 export function Navigation() {
+  const { user } = useAuth()
   useEffect(() => {
     logger.componentMount('Navigation')
     return () => logger.componentUnmount('Navigation')
@@ -23,15 +26,19 @@ export function Navigation() {
       <nav className="flex items-center justify-between bg-white border-4 border-black rounded-xl px-5 py-3 max-w-7xl mx-auto shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
-            <div className="w-6 h-6 bg-white rounded-full"></div>
-          </div>
-          <span className="hidden sm:block font-bold text-lg">StudentStories</span>
+          <img src="/images/klunitylogo.png" alt="KL Unity Logo" className="h-12 w-auto object-contain" />
         </Link>
 
+        {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-6 flex-1 justify-center">
           <Link to="/" onClick={() => handleNavClick('home')} className="text-[18px] font-bold leading-[20px] hover:opacity-70 transition-opacity">
             Home
+          </Link>
+          <Link to="/explore" onClick={() => handleNavClick('explore')} className="text-[18px] font-bold leading-[20px] hover:opacity-70 transition-opacity">
+            Explore
+          </Link>
+          <Link to="/messages" onClick={() => handleNavClick('messages')} className="text-[18px] font-bold leading-[20px] hover:opacity-70 transition-opacity">
+            Messages
           </Link>
           <Link to="/about" onClick={() => handleNavClick('about')} className="text-[18px] font-bold leading-[20px] hover:opacity-70 transition-opacity">
             About
@@ -42,6 +49,9 @@ export function Navigation() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Notification Bell */}
+          {user && <NotificationDropdown />}
+
           {/* Login Button */}
           <Link to="/login" onClick={() => handleAuthClick('login')}>
             <Button

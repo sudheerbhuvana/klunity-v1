@@ -151,6 +151,35 @@ router.post('/avatar', protect, upload.single('avatar'), async (req, res) => {
     }
 });
 
+// @route   GET /api/users/id/:id
+// @desc    Get user profile by ID
+// @access  Public
+router.get('/id/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('name username avatar college major bio role');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        console.error('Get profile by ID error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching profile',
+            error: error.message
+        });
+    }
+});
+
 // @route   GET /api/users/:username
 // @desc    Get public user profile
 // @access  Public

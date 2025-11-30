@@ -3,6 +3,7 @@ import multer from 'multer';
 import { protect } from '../middleware/auth.js';
 import Story from '../models/Story.js';
 import { uploadFile } from '../services/storageService.js';
+import { containsBlacklistedWords } from '../utils/blacklistCheck.js';
 
 const router = express.Router();
 
@@ -134,6 +135,14 @@ router.post('/', protect, upload.array('images', 10), async (req, res) => {
     try {
         const { title, content, excerpt, category, tags } = req.body;
 
+        // Check for blacklisted words
+        if (await containsBlacklistedWords(title) || await containsBlacklistedWords(content) || await containsBlacklistedWords(excerpt)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your post contains inappropriate content and cannot be published.'
+            });
+        }
+
         // Upload images to R2 if any
         let imageUrls = [];
         let attachments = [];
@@ -217,6 +226,14 @@ router.put('/:id', protect, async (req, res) => {
         }
 
         const { title, content, excerpt, category, tags, published } = req.body;
+
+        // Check for blacklisted words
+        if (await containsBlacklistedWords(title) || await containsBlacklistedWords(content) || await containsBlacklistedWords(excerpt)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your post contains inappropriate content and cannot be published.'
+            });
+        }
 
         if (title) story.title = title;
         if (content) story.content = content;
@@ -332,6 +349,14 @@ router.post('/:id/react', protect, async (req, res) => {
 router.post('/:id/comment', protect, async (req, res) => {
     try {
         const { text, parentId } = req.body;
+
+        // Check for blacklisted words
+        if (await containsBlacklistedWords(text)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Your comment contains inappropriate content.'
+            });
+        }
 
         if (!text) {
             return res.status(400).json({

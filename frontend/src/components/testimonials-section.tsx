@@ -3,22 +3,23 @@ import { Star, Quote } from "lucide-react"
 export function TestimonialsSection() {
   const testimonials = [
     {
-      name: "Emily Johnson",
-      role: "Psychology Major, 4th Year",
+      name: "Bhuvana Sudheer",
+      role: "CSE HTE",
       content:
-        "This platform helped me realize I wasn't alone in my struggles with mental health. Reading others' stories gave me courage to seek help and share my own journey.",
+        "This platform helped me realize I wasn't alone in my struggles. Reading others' stories gave me courage to seek help and share my own journey.",
       avatar: "bg-[#6366F1]",
+      highlight: true
     },
     {
-      name: "Marcus Williams",
-      role: "Computer Science, 2nd Year",
+      name: "Kushaal Nayak",
+      role: "CSE HTE",
       content:
-        "As a first-gen student, I felt lost navigating college. Finding stories from others in similar situations made all the difference. Now I share my experiences to help others!",
+        "As a student, I felt lost navigating college. Finding stories from others in similar situations made all the difference. Now I share my experiences to help others!",
       avatar: "bg-[#FF6B7A]",
     },
     {
-      name: "Priya Patel",
-      role: "Pre-Med, 3rd Year",
+      name: "Nischal Singana",
+      role: "CSE 1",
       content:
         "The connections I've made here are genuine. It's refreshing to have a space where we can be real about the ups and downs of student life without judgment.",
       avatar: "bg-[#FFC224]",
@@ -37,7 +38,7 @@ export function TestimonialsSection() {
               </span>
             </h2>
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              Hear from real students about how StudentStories has impacted their college journey.
+              Hear from real students about how KL Unity has impacted their college journey.
             </p>
           </div>
 
@@ -45,7 +46,10 @@ export function TestimonialsSection() {
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-white border-[3px] border-black rounded-[24px] p-8 hover:translate-y-[-4px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all"
+                className={`bg-white border-[3px] border-black rounded-[24px] p-8 hover:translate-y-[-4px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all ${
+                  // @ts-ignore
+                  testimonial.highlight ? "ring-4 ring-[#6366F1] ring-offset-2" : ""
+                  }`}
               >
                 <Quote className="w-10 h-10 text-[#6366F1] mb-4" />
 
