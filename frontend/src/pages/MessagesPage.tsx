@@ -20,6 +20,64 @@ export function MessagesPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isSending, setIsSending] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const socketRef = useRef<any>(null)
+
+    // Initialize Socket.io
+    useEffect(() => {
+        if (currentUser) {
+            import('socket.io-client').then(({ io }) => {
+                // Strip /api from the URL to get the root backend URL
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5005/api';
+                const socketUrl = apiUrl.replace('/api', '');
+
+                console.log('Connecting to socket at:', socketUrl);
+
+                socketRef.current = io(socketUrl, {
+                    withCredentials: true,
+                    transports: ['websocket', 'polling'] // Force websocket first
+                })
+
+                socketRef.current.on('connect', () => {
+                    console.log('Socket connected successfully:', socketRef.current.id)
+                    socketRef.current.emit('join', currentUser.id)
+                })
+
+                socketRef.current.on('connect_error', (err: any) => {
+                    console.error('Socket connection error:', err)
+                })
+
+                socketRef.current.on('receive_message', (message: any) => {
+                    console.log('Received real-time message:', message);
+                    // Only append if the message belongs to the current chat
+                    // We need to check against the current userId (the person we are chatting with)
+                    // The message.sender or message.receiver should match the userId from params
+
+                    // Note: userId from params is the ID of the person we are chatting WITH.
+                    // If I receive a message, sender is THEM.
+                    // If I sent a message (via another tab), sender is ME.
+
+                    // We need to access the latest userId from the ref or state, but inside useEffect closure 'userId' is stale if not in deps.
+                    // However, we have userId in deps.
+
+                    if (userId) {
+                        if (message.sender === userId || message.receiver === userId) {
+                            setMessages(prev => {
+                                // Prevent duplicates just in case
+                                if (prev.some(m => m._id === message._id)) return prev;
+                                return [...prev, message]
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect()
+            }
+        }
+    }, [currentUser, userId])
 
     // Fetch list of conversations
     useEffect(() => {
