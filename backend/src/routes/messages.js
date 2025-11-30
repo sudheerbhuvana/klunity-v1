@@ -43,6 +43,11 @@ router.post('/:userId', protect, async (req, res) => {
             content
         });
 
+        // Emit real-time message
+        if (req.io) {
+            req.io.to(receiverId).emit('receive_message', message);
+        }
+
         logger.info('Message', `Message sent from ${senderId} to ${receiverId}`);
         res.status(201).json(message);
 

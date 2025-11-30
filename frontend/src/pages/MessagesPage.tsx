@@ -21,8 +21,14 @@ export function MessagesPage() {
     const [isSending, setIsSending] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const socketRef = useRef<any>(null)
+    const activeChatIdRef = useRef<string | null>(null)
 
-    // Initialize Socket.io
+    // Keep activeChatIdRef in sync with userId param
+    useEffect(() => {
+        activeChatIdRef.current = userId || null
+    }, [userId])
+
+    // Initialize Socket.io (Run only once on mount/auth)
     useEffect(() => {
         if (currentUser) {
             import('socket.io-client').then(({ io }) => {
@@ -30,11 +36,18 @@ export function MessagesPage() {
                 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5005/api';
                 const socketUrl = apiUrl.replace('/api', '');
 
-                console.log('Connecting to socket at:', socketUrl);
+                console.log('Initializing socket connection to:', socketUrl);
+
+                // Disconnect existing if any (cleanup)
+                if (socketRef.current) {
+                    socketRef.current.disconnect();
+                }
 
                 socketRef.current = io(socketUrl, {
                     withCredentials: true,
-                    transports: ['websocket', 'polling'] // Force websocket first
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionAttempts: 5
                 })
 
                 socketRef.current.on('connect', () => {
@@ -48,25 +61,22 @@ export function MessagesPage() {
 
                 socketRef.current.on('receive_message', (message: any) => {
                     console.log('Received real-time message:', message);
-                    // Only append if the message belongs to the current chat
-                    // We need to check against the current userId (the person we are chatting with)
-                    // The message.sender or message.receiver should match the userId from params
 
-                    // Note: userId from params is the ID of the person we are chatting WITH.
-                    // If I receive a message, sender is THEM.
-                    // If I sent a message (via another tab), sender is ME.
+                    // Check if the message belongs to the currently active chat
+                    const currentChatId = activeChatIdRef.current;
 
-                    // We need to access the latest userId from the ref or state, but inside useEffect closure 'userId' is stale if not in deps.
-                    // However, we have userId in deps.
-
-                    if (userId) {
-                        if (message.sender === userId || message.receiver === userId) {
+                    if (currentChatId) {
+                        // If we are chatting with the sender, OR if we sent it (echo)
+                        if (message.sender === currentChatId || message.receiver === currentChatId) {
                             setMessages(prev => {
-                                // Prevent duplicates just in case
+                                // Prevent duplicates
                                 if (prev.some(m => m._id === message._id)) return prev;
                                 return [...prev, message]
                             })
                         }
+                    } else {
+                        // Optional: Show notification if not in chat?
+                        console.log('Message received but not in active chat');
                     }
                 })
             })
@@ -74,17 +84,12 @@ export function MessagesPage() {
 
         return () => {
             if (socketRef.current) {
+                console.log('Disconnecting socket');
                 socketRef.current.disconnect()
+                socketRef.current = null;
             }
         }
-    }, [currentUser, userId])
-
-    // Fetch list of conversations
-    useEffect(() => {
-        fetchConversations()
-    }, [])
-
-    // Fetch messages when userId changes
+    }, [currentUser]) // Only re-run if user changes (login/logout)
     useEffect(() => {
         if (userId) {
             fetchMessages(userId)
