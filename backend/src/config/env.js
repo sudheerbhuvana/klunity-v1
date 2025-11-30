@@ -11,7 +11,12 @@ const envPath = path.resolve(__dirname, '../../.env');
 const result = dotenv.config({ path: envPath });
 
 if (result.error) {
-    console.error('Error loading .env file:', result.error);
+    // In production/docker, .env might not exist as vars are injected
+    if (result.error.code === 'ENOENT') {
+        console.log('No .env file found, using system environment variables.');
+    } else {
+        console.error('Error loading .env file:', result.error);
+    }
 } else {
     console.log(`Environment variables loaded from: ${envPath}`);
 }
